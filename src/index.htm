@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8" />
+    <title>StackFlame</title>
+    <link rel="stylesheet" href="css/pure-min.css" />
+    <link rel="stylesheet" href="css/grids-responsive-min.css" />
+    <link rel="stylesheet" href="css/d3-flamegraph.css" />
+</head>
+
+<body>
+    <div class="header">
+        <div class="home-menu pure-menu pure-menu-horizontal pure-menu-fixed">
+            <a class="pure-menu-heading" href="#" id="homeLink">StackFlame</a>
+        </div>
+    </div>
+
+    <div id="uploadForm">
+        <div class="content">
+            <div class="splash">
+                <h1 class="splash-head">StackFlame</h1>
+                <p class="splash-subhead">
+                    Start by uploading your core dump.
+                </p>
+                <p>
+                    <input type="file" id="fileElem" hidden />
+                    <a href="#" class="pure-button pure-button-primary" id="uploadBtn">Upload file</a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div id="loadedContainer">
+        <div class="content">
+            <h1 id="loadedCaption"></h1>
+            <div id="graph"></div>
+            <div id="graphDetail"></div>
+        </div>
+    </div>
+
+    <script src="js/d3.min.js"></script>
+    <script src="js/index.js"></script>
+    <script src="js/d3-flamegraph.min.js"></script>
+    <script src="bundle.js"></script>
+</body>
+
+</html>

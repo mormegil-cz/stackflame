@@ -1,0 +1,31 @@
+{
+  "name": "stackflame",
+  "version": "1.0.0",
+  "description": "Stacktrace flamegraph visualizer",
+  "author": {
+    "name": "Petr Kadlec",
+    "email": "mormegil@centrum.cz"
+  },
+  "license": "ISC",
+  "devDependencies": {
+    "@types/d3": "^5.7.2",
+    "browserify": "^16.5.0",
+    "fancy-log": "^1.3.3",
+    "gulp": "^4.0.2",
+    "gulp-sourcemaps": "^2.6.5",
+    "gulp-terser": "^1.2.0",
+    "gulp-typescript": "^5.0.1",
+    "gulp-uglify": "^3.0.2",
+    "tsify": "^4.0.1",
+    "typescript": "^3.6.3",
+    "vinyl-buffer": "^1.0.1",
+    "vinyl-source-stream": "^2.0.0",
+    "watchify": "^3.11.1"
+  },
+  "dependencies": {
+    "@types/d3-tip": "^3.5.5",
+    "d3": "^5.12.0",
+    "d3-flame-graph": "^2.1.2",
+    "d3-tip": "^0.9.1"
+  }
+}

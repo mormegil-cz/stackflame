@@ -1,0 +1,14 @@
+{
+    "include": [
+        "src/*.ts",
+        "@types/**/*.d.ts"
+    ],
+    "compilerOptions": {
+        "baseUrl": ".",
+        "paths": {
+            "d3-flame-graph": ["node_modules/d3-flame-graph/index"]
+        },
+        "noImplicitAny": true,
+        "target": "es2015"
+    }
+}
