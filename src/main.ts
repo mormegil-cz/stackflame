@@ -2,15 +2,19 @@ import * as d3 from 'd3';
 import {flamegraph as fg} from 'd3-flame-graph';
 
 namespace StackFlame {
-    const $ = document.getElementById.bind(document);
+    const $: (id: string) => HTMLElement = document.getElementById.bind(document);
     const eHomeLink = $('homeLink');
     const eUploadForm = $('uploadForm');
     const eUploadBtn = $('uploadBtn');
-    const eFileElem = <HTMLInputElement>$('fileElem');
+    const eFileElem = $('fileElem') as HTMLInputElement;
+    const eUploadSpinner = $('uploadSpinner');
+    const eUploadCaption = $('uploadCaption');
     const eLoadedContainer = $('loadedContainer');
     const eLoadedCaption = $('loadedCaption');
     const eGraph = $('graph');
     const eGraphDetail = $('graphDetail');
+
+    let loading = false;
 
     export function init() {
         eHomeLink.addEventListener('click', onHomeClick);
@@ -25,12 +29,19 @@ namespace StackFlame {
 
     function onUploadBtnClick(event: Event) {
         event.preventDefault();
-        // BOOO! FIXME! Ugly
+        if (loading) return;
+
+        // FIXME! BOOO! Ugly
         (d3 as any).flamegraph = fg;
         eFileElem.click();
     }
 
     function onFilesUploaded(event: Event) {
+        loading = true;
+        eUploadSpinner.style.removeProperty('display');
+        eUploadCaption.textContent = 'Loading…';
+        eUploadBtn.setAttribute('disabled', '');
+
         const files = eFileElem.files;
 
         if (!files.length) {
@@ -41,16 +52,24 @@ namespace StackFlame {
         const file = files[0];
 
         const reader = new FileReader();
-        reader.onload = evt => displayCoreDumpGraph(file.name, parseCoreDump(evt.target.result as string));
+        reader.onload = evt => {
+            displayCoreDumpGraph(file.name, parseCoreDump(evt.target.result as string));
+            eUploadForm.style.display = 'none';
+            eLoadedContainer.style.removeProperty('display');
+            eUploadBtn.setAttribute('href', '');
+            loading = false;
+        };
         reader.readAsText(file);
-
-        eUploadForm.style.display = 'none';
-        eLoadedContainer.style.display = 'block';
     }
 
     function resetEverything() {
+        eUploadBtn.setAttribute('href', '#');
+        eUploadBtn.removeAttribute('disabled');
         eLoadedContainer.style.display = 'none';
-        eUploadForm.style.display = 'block';
+        eUploadSpinner.style.display = 'none';
+        eUploadCaption.textContent = 'Load file';
+        eUploadForm.style.removeProperty('display');
+        loading = false;
     }
 
     function parseCoreDump(coreDump: string) {

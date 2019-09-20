@@ -4,31 +4,35 @@
 <head>
     <meta charset="UTF-8" />
     <title>StackFlame</title>
-    <link rel="stylesheet" href="css/pure-min.css" />
-    <link rel="stylesheet" href="css/grids-responsive-min.css" />
+    <link rel="stylesheet" href="css/bootstrap.min.css" />
     <link rel="stylesheet" href="css/d3-flamegraph.css" />
 </head>
 
 <body>
-    <div class="header">
-        <div class="home-menu pure-menu pure-menu-horizontal pure-menu-fixed">
-            <a class="pure-menu-heading" href="#" id="homeLink">StackFlame</a>
-        </div>
-    </div>
-
-    <div id="uploadForm">
-        <div class="content">
-            <div class="splash">
-                <h1 class="splash-head">StackFlame</h1>
-                <p class="splash-subhead">
-                    Start by uploading your core dump.
-                </p>
-                <p>
-                    <input type="file" id="fileElem" hidden />
-                    <a href="#" class="pure-button pure-button-primary" id="uploadBtn">Upload file</a>
-                </p>
+    <header>
+        <div class="navbar navbar-dark bg-dark shadow-sm">
+            <div class="container d-flex justify-content-between">
+                <a href="#" class="navbar-brand d-flex align-items-center" id="homeLink">
+                    <strong>StackFlame</strong>
+                </a>
             </div>
         </div>
+    </header>
+
+    <div id="uploadForm">
+        <section class="jumbotron text-center">
+            <div class="container">
+                <h1 class="jumbotron-heading">StackFlame</h1>
+                <p class="lead text-muted">Start by loading your core dump.</p>
+                <p>
+                    <input type="file" id="fileElem" hidden />
+                    <a href="#" class="btn btn-primary my-2" id="uploadBtn">
+                        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" id="uploadSpinner" style="display: none"></span>
+                        <span id="uploadCaption">Load file</span>
+                    </a>
+                </p>
+            </div>
+        </section>
     </div>
 
     <div id="loadedContainer">

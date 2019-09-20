@@ -9,7 +9,7 @@ const buffer = require('vinyl-buffer');
 const fancy_log = require('fancy-log');
 const paths = {
     pages: ['src/*.htm'],
-    css: ['src/css/*.css', 'node_modules/d3-flame-graph/dist/d3-flamegraph.css'],
+    css: ['node_modules/bootstrap/dist/css/bootstrap.min.css', 'node_modules/d3-flame-graph/dist/d3-flamegraph.css'],
     js: ['node_modules/d3/dist/d3.min.js', 'node_modules/d3-tip/dist/index.js', 'node_modules/d3-flame-graph/dist/d3-flamegraph.min.js']
 };
 
