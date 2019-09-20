@@ -1,5 +1,5 @@
 import * as d3 from 'd3';
-import {flamegraph as fg} from 'd3-flame-graph';
+import { flamegraph as fg } from 'd3-flame-graph';
 
 namespace StackFlame {
     const $: (id: string) => HTMLElement = document.getElementById.bind(document);
@@ -8,11 +8,19 @@ namespace StackFlame {
     const eUploadBtn = $('uploadBtn');
     const eFileElem = $('fileElem') as HTMLInputElement;
     const eUploadSpinner = $('uploadSpinner');
+    const eUploadProgressWrapper = $('uploadProgressWrapper');
+    const eUploadProgress = $('uploadProgress');
     const eUploadCaption = $('uploadCaption');
     const eLoadedContainer = $('loadedContainer');
-    const eLoadedCaption = $('loadedCaption');
     const eGraph = $('graph');
     const eGraphDetail = $('graphDetail');
+
+    const PHASE_UPLOAD = 0;
+    const PHASE_SPLIT = 1;
+    const PHASE_PARSE_TEXT = 2;
+    const PHASE_PARSE_STACKS = 3;
+    const PHASE_BUILD_TREE = 4;
+    const PHASE_COUNT = 5;
 
     let loading = false;
 
@@ -38,7 +46,9 @@ namespace StackFlame {
 
     function onFilesUploaded(event: Event) {
         loading = true;
+        loadProgressMonitor.reportPhase(PHASE_UPLOAD, 1);
         eUploadSpinner.style.removeProperty('display');
+        eUploadProgressWrapper.style.removeProperty('display');
         eUploadCaption.textContent = 'Loading…';
         eUploadBtn.setAttribute('disabled', '');
 
@@ -52,8 +62,14 @@ namespace StackFlame {
         const file = files[0];
 
         const reader = new FileReader();
-        reader.onload = evt => {
-            displayCoreDumpGraph(file.name, parseCoreDump(evt.target.result as string));
+        reader.onload = async evt => {
+            const tree = await parseCoreDump(evt.target.result as string);
+            if (!tree) {
+                alert('No usable data found in the file');
+                resetEverything();
+                return;
+            }
+            displayCoreDumpGraph(file.name, tree);
             eUploadForm.style.display = 'none';
             eLoadedContainer.style.removeProperty('display');
             eUploadBtn.setAttribute('href', '');
@@ -66,18 +82,25 @@ namespace StackFlame {
         eUploadBtn.setAttribute('href', '#');
         eUploadBtn.removeAttribute('disabled');
         eLoadedContainer.style.display = 'none';
+        eGraph.innerHTML = '';
+        eGraphDetail.innerHTML = '';
         eUploadSpinner.style.display = 'none';
+        eUploadProgressWrapper.style.display = 'none';
         eUploadCaption.textContent = 'Load file';
         eUploadForm.style.removeProperty('display');
         loading = false;
     }
 
-    function parseCoreDump(coreDump: string) {
+    async function parseCoreDump(coreDump: string): Promise<FlameGraphTree> {
+        loadProgressMonitor.reportPhase(PHASE_SPLIT, 1);
         const lines = coreDump.split(/\r?\n/);
+        loadProgressMonitor.reportPhase(PHASE_PARSE_TEXT, lines.length);
+
         let stacks: StackTrace[] = [];
         let currentThread: string = null;
         let currentStack: string[] = [];
         for (let i = 0; i < lines.length; ++i) {
+            loadProgressMonitor.reportProgress(i);
             const line = lines[i];
             if (line.startsWith('3XMTHREADINFO')) {
                 if (currentStack.length) {
@@ -103,12 +126,18 @@ namespace StackFlame {
             stacks.push({ thread: currentThread, stack: currentStack });
         }
 
-        return parseStacks(stacks);
+        if (!stacks.length) {
+            return null;
+        }
+
+        return await parseStacks(stacks);
     }
 
-    function parseStacks(stacks: StackTrace[]): FlameGraphTree {
+    async function parseStacks(stacks: StackTrace[]): Promise<FlameGraphTree> {
+        loadProgressMonitor.reportPhase(PHASE_PARSE_STACKS, stacks.length);
         const rootMap: StackTree = {};
         for (let i = 0; i < stacks.length; ++i) {
+            loadProgressMonitor.reportProgress(i);
             const stack: StackTrace = stacks[i];
             let curr: StackTree = rootMap;
             for (let j = stack.stack.length - 1; j >= 0; --j) {
@@ -119,16 +148,18 @@ namespace StackFlame {
             }
         }
 
-        return buildFlameGraphTree("(root)", rootMap);
+        return await buildFlameGraphTree("(root)", rootMap);
     }
 
-    function buildFlameGraphTree(name: string, tree: StackTree): FlameGraphTree {
-        let children: FlameGraphTree[] = [];
+    async function buildFlameGraphTree(name: string, tree: StackTree): Promise<FlameGraphTree> {
+        const methods = Object.keys(tree);
+        loadProgressMonitor.reportPhase(PHASE_BUILD_TREE, methods.length);
+        const children: FlameGraphTree[] = [];
         let value = 0;
-        for (const method in tree) {
-            if (!tree.hasOwnProperty(method)) continue;
-
-            const child = buildFlameGraphTree(method, tree[method]);
+        for (let i = 0; i < methods.length; ++i) {
+            loadProgressMonitor.reportProgress(i);
+            const method = methods[i];
+            const child = await buildFlameGraphTree(method, tree[method]);
             children.push(child);
             value += child.value;
         }
@@ -193,6 +224,28 @@ namespace StackFlame {
         value: number;
         children?: FlameGraphTree[];
     }
+
+    class ProgressMonitor {
+        private currentPhase: number;
+        private phaseSize: number;
+
+        public constructor(private phaseCount: number, private eProgress: HTMLElement) {
+            this.currentPhase = 0;
+            this.phaseSize = 1;
+        }
+
+        public reportPhase(phase: number, size: number): void {
+            this.currentPhase = phase;
+            this.phaseSize = size;
+        }
+
+        public reportProgress(progress: number): void {
+            let totalProgress = (this.currentPhase + progress / this.phaseSize) / this.phaseCount;
+            this.eProgress.style.width = Math.round(totalProgress * 100) + '%';
+        }
+    }
+
+    const loadProgressMonitor = new ProgressMonitor(PHASE_COUNT, eUploadProgress);
 }
 
 StackFlame.init();

@@ -27,17 +27,20 @@
                 <p>
                     <input type="file" id="fileElem" hidden />
                     <a href="#" class="btn btn-primary my-2" id="uploadBtn">
-                        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" id="uploadSpinner" style="display: none"></span>
+                        <span class="spinner-border spinner-border-sm" role="status" id="uploadSpinner"
+                            style="display: none"></span>
                         <span id="uploadCaption">Load file</span>
                     </a>
                 </p>
+                <div class="progress" id="uploadProgressWrapper" style="display: none">
+                    <div id="uploadProgress" class="progress-bar" role="progressbar"></div>
+                </div>
             </div>
         </section>
     </div>
 
     <div id="loadedContainer">
         <div class="content">
-            <h1 id="loadedCaption"></h1>
             <div id="graph"></div>
             <div id="graphDetail"></div>
         </div>
