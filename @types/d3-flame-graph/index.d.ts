@@ -134,6 +134,9 @@ declare module "d3" {
         /// ```
         /// If called with no arguments, setSearchMatch will return reset the search match function.
         setSearchMatch(matcher?: Function): Flamegraph;
+
+        clear(): void;
+        search(term: string): void;
     }
 
     export function flamegraph(): Flamegraph;

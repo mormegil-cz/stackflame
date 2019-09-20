@@ -4,6 +4,8 @@ import { flamegraph as fg } from 'd3-flame-graph';
 namespace StackFlame {
     const $: (id: string) => HTMLElement = document.getElementById.bind(document);
     const eHomeLink = $('homeLink');
+    const eResetZoom = $('resetZoom');
+    const eSearchBox = $('searchBox') as HTMLInputElement;
     const eUploadForm = $('uploadForm');
     const eUploadBtn = $('uploadBtn');
     const eFileElem = $('fileElem') as HTMLInputElement;
@@ -23,9 +25,12 @@ namespace StackFlame {
     const PHASE_COUNT = 5;
 
     let loading = false;
+    let flameGraph: d3.Flamegraph | null;
 
     export function init() {
         eHomeLink.addEventListener('click', onHomeClick);
+        eResetZoom.addEventListener('click', onResetZoomClick);
+        eSearchBox.addEventListener('input', onSearchBoxChange);
         eUploadBtn.addEventListener('click', onUploadBtnClick, false);
         eFileElem.addEventListener('change', onFilesUploaded);
     }
@@ -33,6 +38,20 @@ namespace StackFlame {
     function onHomeClick(event: Event) {
         event.preventDefault();
         resetEverything();
+    }
+
+    function onResetZoomClick(event: Event) {
+        event.preventDefault();
+        if (flameGraph) flameGraph.resetZoom();
+    }
+
+    function onSearchBoxChange() {
+        if (flameGraph) {
+            d3.arc()
+            const term = eSearchBox.value;
+            if (term) flameGraph.search(term);
+            else flameGraph.clear();
+        }
     }
 
     function onUploadBtnClick(event: Event) {
@@ -79,6 +98,8 @@ namespace StackFlame {
     }
 
     function resetEverything() {
+        flameGraph = null;
+        eSearchBox.value = '';
         eUploadBtn.setAttribute('href', '#');
         eUploadBtn.removeAttribute('disabled');
         eLoadedContainer.style.display = 'none';
@@ -91,7 +112,7 @@ namespace StackFlame {
         loading = false;
     }
 
-    async function parseCoreDump(coreDump: string): Promise<FlameGraphTree> {
+    async function parseCoreDump(coreDump: string): Promise<FlameGraphTree | null> {
         loadProgressMonitor.reportPhase(PHASE_SPLIT, 1);
         const lines = coreDump.split(/\r?\n/);
         loadProgressMonitor.reportPhase(PHASE_PARSE_TEXT, lines.length);
@@ -168,7 +189,7 @@ namespace StackFlame {
     }
 
     function displayCoreDumpGraph(title: string, graphData: FlameGraphTree) {
-        let flameGraph = d3.flamegraph()
+        flameGraph = d3.flamegraph()
             .width(1800)
             .cellHeight(18)
             .transitionDuration(750)
