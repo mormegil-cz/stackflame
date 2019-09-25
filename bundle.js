@@ -24935,7 +24935,7 @@ var StackFlame;
             let currentThread = null;
             let currentStack = [];
             for (let i = 0; i < lines.length; ++i) {
-                loadProgressMonitor.reportProgress(i);
+                yield loadProgressMonitor.reportProgress(i);
                 const line = lines[i];
                 if (line.startsWith('3XMTHREADINFO')) {
                     if (currentStack.length) {
@@ -24970,12 +24970,13 @@ var StackFlame;
             loadProgressMonitor.reportPhase(PHASE_PARSE_STACKS, stacks.length);
             const rootMap = {};
             for (let i = 0; i < stacks.length; ++i) {
-                loadProgressMonitor.reportProgress(i);
+                yield loadProgressMonitor.reportProgress(i);
                 const stack = stacks[i];
                 let curr = rootMap;
                 for (let j = stack.stack.length - 1; j >= 0; --j) {
                     const line = stack.stack[j];
-                    const next = curr[line] || {};
+                    const next = curr[line] || { '#count': 0 };
+                    ++next['#count'];
                     curr[line] = next;
                     curr = next;
                 }
@@ -24990,13 +24991,15 @@ var StackFlame;
             const children = [];
             let value = 0;
             for (let i = 0; i < methods.length; ++i) {
-                loadProgressMonitor.reportProgress(i);
+                yield loadProgressMonitor.reportProgress(i);
                 const method = methods[i];
+                if (method === '#count')
+                    continue;
                 const child = yield buildFlameGraphTree(method, tree[method]);
                 children.push(child);
                 value += child.value;
             }
-            return children.length ? { name: name, value: value, children: children } : { name: name, value: 1 };
+            return children.length ? { name: name, value: value, children: children } : { name: name, value: tree["#count"] };
         });
     }
     function displayCoreDumpGraph(title, graphData) {
@@ -25044,14 +25047,26 @@ var StackFlame;
             this.eProgress = eProgress;
             this.currentPhase = 0;
             this.phaseSize = 1;
+            this.lastUpdate = 0;
         }
         reportPhase(phase, size) {
             this.currentPhase = phase;
             this.phaseSize = size;
         }
         reportProgress(progress) {
-            let totalProgress = (this.currentPhase + progress / this.phaseSize) / this.phaseCount;
-            this.eProgress.style.width = Math.round(totalProgress * 100) + '%';
+            return __awaiter(this, void 0, void 0, function* () {
+                const totalProgress = (this.currentPhase + progress / this.phaseSize) / this.phaseCount;
+                this.eProgress.style.width = Math.round(totalProgress * 100) + '%';
+                const now = Date.now();
+                if (now - this.lastUpdate > 800) {
+                    this.lastUpdate = now;
+                    yield ProgressMonitor.sleep(30);
+                    this.lastUpdate = now;
+                }
+            });
+        }
+        static sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
         }
     }
     const loadProgressMonitor = new ProgressMonitor(PHASE_COUNT, eUploadProgress);
