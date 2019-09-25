@@ -121,7 +121,7 @@ namespace StackFlame {
         let currentThread: string = null;
         let currentStack: string[] = [];
         for (let i = 0; i < lines.length; ++i) {
-            loadProgressMonitor.reportProgress(i);
+            await loadProgressMonitor.reportProgress(i);
             const line = lines[i];
             if (line.startsWith('3XMTHREADINFO')) {
                 if (currentStack.length) {
@@ -158,12 +158,13 @@ namespace StackFlame {
         loadProgressMonitor.reportPhase(PHASE_PARSE_STACKS, stacks.length);
         const rootMap: StackTree = {};
         for (let i = 0; i < stacks.length; ++i) {
-            loadProgressMonitor.reportProgress(i);
+            await loadProgressMonitor.reportProgress(i);
             const stack: StackTrace = stacks[i];
             let curr: StackTree = rootMap;
             for (let j = stack.stack.length - 1; j >= 0; --j) {
                 const line: string = stack.stack[j];
-                const next: StackTree = curr[line] || {};
+                const next: StackTree = (curr[line] as StackTree) || { '#count': 0 };
+                ++(next['#count'] as number);
                 curr[line] = next;
                 curr = next;
             }
@@ -178,14 +179,15 @@ namespace StackFlame {
         const children: FlameGraphTree[] = [];
         let value = 0;
         for (let i = 0; i < methods.length; ++i) {
-            loadProgressMonitor.reportProgress(i);
+            await loadProgressMonitor.reportProgress(i);
             const method = methods[i];
-            const child = await buildFlameGraphTree(method, tree[method]);
+            if (method === '#count') continue;
+            const child = await buildFlameGraphTree(method, tree[method] as StackTree);
             children.push(child);
             value += child.value;
         }
 
-        return children.length ? { name: name, value: value, children: children } : { name: name, value: 1 };
+        return children.length ? { name: name, value: value, children: children } : { name: name, value: tree["#count"] as number };
     }
 
     function displayCoreDumpGraph(title: string, graphData: FlameGraphTree) {
@@ -237,7 +239,7 @@ namespace StackFlame {
     }
 
     interface StackTree {
-        [key: string]: StackTree;
+        [key: string]: StackTree | number;
     }
 
     interface FlameGraphTree {
@@ -249,10 +251,12 @@ namespace StackFlame {
     class ProgressMonitor {
         private currentPhase: number;
         private phaseSize: number;
+        private lastUpdate: number;
 
         public constructor(private phaseCount: number, private eProgress: HTMLElement) {
             this.currentPhase = 0;
             this.phaseSize = 1;
+            this.lastUpdate = 0;
         }
 
         public reportPhase(phase: number, size: number): void {
@@ -260,9 +264,19 @@ namespace StackFlame {
             this.phaseSize = size;
         }
 
-        public reportProgress(progress: number): void {
-            let totalProgress = (this.currentPhase + progress / this.phaseSize) / this.phaseCount;
+        public async reportProgress(progress: number): Promise<void> {
+            const totalProgress = (this.currentPhase + progress / this.phaseSize) / this.phaseCount;
             this.eProgress.style.width = Math.round(totalProgress * 100) + '%';
+            const now = Date.now();
+            if (now - this.lastUpdate > 800) {
+                this.lastUpdate = now;
+                await ProgressMonitor.sleep(30);
+                this.lastUpdate = now;
+            }
+        }
+
+        static sleep(ms: number): Promise<void> {
+            return new Promise(resolve => setTimeout(resolve, ms));
         }
     }
 
