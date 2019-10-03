@@ -43,7 +43,7 @@ function bundle() {
         .pipe(source('bundle.js'))
         .pipe(buffer())
         .pipe(sourcemaps.init({ loadMaps: true }))
-        //.pipe(terser())
+        .pipe(terser())
         .pipe(sourcemaps.write('./'))
         .pipe(gulp.dest('dist'));
 }
