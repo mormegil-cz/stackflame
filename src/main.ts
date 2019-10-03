@@ -8,6 +8,8 @@ namespace StackFlame {
     const eSearchBox = $('searchBox') as HTMLInputElement;
     const eUploadForm = $('uploadForm');
     const eUploadBtn = $('uploadBtn');
+    const eWaitingOnCB = $('waitingOnCB') as HTMLInputElement;
+    const eEnteredLockCB = $('enteredLockCB') as HTMLInputElement;
     const eFileElem = $('fileElem') as HTMLInputElement;
     const eUploadSpinner = $('uploadSpinner');
     const eUploadProgressWrapper = $('uploadProgressWrapper');
@@ -24,6 +26,8 @@ namespace StackFlame {
     const PHASE_BUILD_TREE = 4;
     const PHASE_COUNT = 5;
 
+    let showWaitingOn = false;
+    let showEnteredLock = false;
     let loading = false;
     let flameGraph: d3.Flamegraph | null;
 
@@ -70,6 +74,9 @@ namespace StackFlame {
         eUploadProgressWrapper.style.removeProperty('display');
         eUploadCaption.textContent = 'Loading…';
         eUploadBtn.setAttribute('disabled', '');
+
+        showWaitingOn = eWaitingOnCB.checked;
+        showEnteredLock = eEnteredLockCB.checked;
 
         const files = eFileElem.files;
 
@@ -123,16 +130,28 @@ namespace StackFlame {
         for (let i = 0; i < lines.length; ++i) {
             await loadProgressMonitor.reportProgress(i);
             const line = lines[i];
-            if (line.startsWith('3XMTHREADINFO')) {
+            if (line.startsWith('3XMTHREADINFO ')) {
                 if (currentStack.length) {
                     stacks.push({ thread: currentThread, stack: currentStack });
                     currentThread = line;
                     currentStack = [];
                 }
-            } else if (line.startsWith('4XESTACKTRACE')) {
+            } else if (line.startsWith('4XESTACKTRACE ')) {
                 const parsed = line.match(/^4XESTACKTRACE\s*at ([^(]+)/);
                 const methodName = parsed[1];
                 currentStack.push(methodName.replace(/\//g, '.'));
+            } else if (line.startsWith('3XMTHREADBLOCK ')) {
+                if (showWaitingOn) {
+                    const parsed = line.match(/^[0-9A-Z]*\s*\(?(.+)\)?$/);
+                    const text = parsed[1];
+                    currentStack.push('> ' + text);
+                }
+            } else if (line.startsWith('5XESTACKTRACE ')) {
+                if (showEnteredLock) {
+                    const parsed = line.match(/^[0-9A-Z]*\s*\(?(.+)\)?$/);
+                    const text = parsed[1];
+                    currentStack.push('> ' + text);
+                }
             }
 
             // 3XMJAVALTHREAD
@@ -140,7 +159,6 @@ namespace StackFlame {
             // 3XMTHREADINFO2
             // 3XMCPUTIME
             // 3XMHEAPALLOC
-            // 5XESTACKTRACE (entered lock:
         }
 
         if (currentStack.length) {
@@ -262,14 +280,16 @@ namespace StackFlame {
         public reportPhase(phase: number, size: number): void {
             this.currentPhase = phase;
             this.phaseSize = size;
+            this.lastUpdate = 0;
+            this.reportProgress(0);
         }
 
         public async reportProgress(progress: number): Promise<void> {
-            const totalProgress = (this.currentPhase + progress / this.phaseSize) / this.phaseCount;
-            this.eProgress.style.width = Math.round(totalProgress * 100) + '%';
             const now = Date.now();
             if (now - this.lastUpdate > 800) {
                 this.lastUpdate = now;
+                const totalProgress = (this.currentPhase + progress / this.phaseSize) / this.phaseCount;
+                this.eProgress.style.width = Math.round(totalProgress * 100) + '%';
                 await ProgressMonitor.sleep(30);
                 this.lastUpdate = now;
             }
