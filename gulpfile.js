@@ -31,7 +31,15 @@ gulp.task('copy-js', function () {
 const watchedBrowserify = watchify(browserify({
     basedir: '.',
     debug: true,
-    entries: ['src/main.ts'],
+    entries: [
+        "src/Definitions.ts",
+        "src/ProgressMonitor.ts",
+        "src/CoreDumpAnalyzer.ts",
+        "src/IbmCoreDumpAnalyzer.ts",
+        "src/IbmSystemOutAnalyzer.ts",
+        "src/DumpFormatDetector.ts",
+        "src/main.ts"
+    ],
     cache: {},
     packageCache: {}
 }).plugin(tsify));

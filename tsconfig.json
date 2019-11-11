@@ -1,7 +1,13 @@
 {
     "include": [
-        "src/*.ts",
-        "@types/**/*.d.ts"
+        "@types/**/*.d.ts",
+        "src/Definitions.ts",
+        "src/ProgressMonitor.ts",
+        "src/CoreDumpAnalyzer.ts",
+        "src/IbmCoreDumpAnalyzer.ts",
+        "src/IbmSystemOutAnalyzer.ts",
+        "src/DumpFormatDetector.ts",
+        "src/main.ts"
     ],
     "compilerOptions": {
         "baseUrl": ".",
@@ -9,6 +15,7 @@
             "d3-flame-graph": ["node_modules/d3-flame-graph/index"]
         },
         "noImplicitAny": true,
-        "target": "es2015"
+        "target": "es2015",
+        "module": "commonjs"
     }
 }
