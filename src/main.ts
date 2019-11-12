@@ -1,5 +1,5 @@
 import * as d3 from 'd3';
-import { flamegraph as d3flamegraph } from 'd3-flame-graph';
+import * as d3FlameGraph from 'd3-flame-graph';
 
 import * as Definitions from './Definitions';
 import ProgressMonitor from './ProgressMonitor';
@@ -25,11 +25,9 @@ namespace StackFlameMain {
 
     let settings = new Definitions.AnalysisSettings(false, false);
     let loading = false;
-    let flameGraph: d3.Flamegraph | null;
+    let flameGraph: d3FlameGraph.Flamegraph | null;
 
     export function init() {
-        console.debug(d3.flamegraph);
-        console.debug(d3flamegraph);
         eHomeLink.addEventListener('click', onHomeClick);
         eResetZoom.addEventListener('click', onResetZoomClick);
         eSearchBox.addEventListener('input', onSearchBoxChange);
@@ -61,8 +59,7 @@ namespace StackFlameMain {
         if (loading) return;
 
         // FIXME! BOOO! Ugly
-        //(d3 as any).flamegraph = fg;
-        (d3 as any).flamegraph = d3flamegraph;
+        (d3 as any).flamegraph = d3FlameGraph.flamegraph;
         eFileElem.click();
     }
 
@@ -126,7 +123,8 @@ namespace StackFlameMain {
     }
 
     function displayCoreDumpGraph(title: string, graphData: Definitions.FlameGraphTree) {
-        flameGraph = d3.flamegraph()
+        // FIXME! BOOO! Ugly
+        flameGraph = (d3 as any).flamegraph()
             .width(1800)
             .cellHeight(18)
             .transitionDuration(750)

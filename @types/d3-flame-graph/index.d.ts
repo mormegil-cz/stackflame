@@ -1,7 +1,5 @@
-import { Color } from "d3"
-
-declare module "d3" {
-    interface Flamegraph {
+declare module 'd3-flame-graph' {
+    export interface Flamegraph {
         /// Defines if the plugin should use the self value logic to calculate the node value for the Flame Graph frame size. If set to true, it will assume the node value from the input callgraph represents only the internal node value, or self value, not the sum of all children. If set to false it will assume the value includes the chidren values too. Defaults to false if not explicitely set, which if the same behavior 1.x had.
         selfValue(enabled?: boolean): Flamegraph;
 

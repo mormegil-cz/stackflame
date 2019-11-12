@@ -1,13 +1,7 @@
 {
     "include": [
         "@types/**/*.d.ts",
-        "src/Definitions.ts",
-        "src/ProgressMonitor.ts",
-        "src/CoreDumpAnalyzer.ts",
-        "src/IbmCoreDumpAnalyzer.ts",
-        "src/IbmSystemOutAnalyzer.ts",
-        "src/DumpFormatDetector.ts",
-        "src/main.ts"
+        "src/*.ts"
     ],
     "compilerOptions": {
         "baseUrl": ".",
