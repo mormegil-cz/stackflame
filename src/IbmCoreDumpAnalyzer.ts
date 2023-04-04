@@ -17,9 +17,9 @@ export default class IbmCoreDumpAnalyzer extends CoreDumpAnalyzer {
             if (line.startsWith('3XMTHREADINFO ')) {
                 if (currentStack.length) {
                     stacks.push({ thread: currentThread, stack: currentStack });
-                    currentThread = line;
-                    currentStack = [];
                 }
+                currentThread = line;
+                currentStack = [];
             } else if (line.startsWith('4XESTACKTRACE ')) {
                 const parsed = line.match(/^4XESTACKTRACE\s*at ([^(]+)/);
                 const methodName = parsed[1];

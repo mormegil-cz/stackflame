@@ -9,6 +9,7 @@ Supported formats
 
 * IBM WebSphere Java core dump
 * IBM WebSphere SystemOut capturing hung threads
+* OpenJDK thread dump
 
 Credits
 -------
