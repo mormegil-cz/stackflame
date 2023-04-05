@@ -18,7 +18,7 @@ export default class OpenJdkThreadDumpAnalyzer extends CoreDumpAnalyzer {
 
         let state: State = State.START;
         let stacks: Definitions.StackTrace[] = [];
-        let currentThread: string = null;
+        let currentThread: string | null = null;
         let currentStack: string[] = [];
 
         for (let i = 0; i < lines.length; ++i) {
@@ -128,7 +128,7 @@ export default class OpenJdkThreadDumpAnalyzer extends CoreDumpAnalyzer {
         }
 
         if (currentStack.length) {
-            stacks.push({ thread: currentThread, stack: currentStack });
+            stacks.push({ thread: currentThread || '?', stack: currentStack });
         }
 
         if (!stacks.length) {
