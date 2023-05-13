@@ -37,6 +37,7 @@ const watchedBrowserify = watchify(browserify({
         "src/CoreDumpAnalyzer.ts",
         "src/IbmCoreDumpAnalyzer.ts",
         "src/IbmSystemOutAnalyzer.ts",
+        "src/OpenJdkThreadDumpAnalyzer.ts",
         "src/DumpFormatDetector.ts",
         "src/main.ts"
     ],
