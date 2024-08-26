@@ -132,38 +132,12 @@ namespace StackFlameMain {
             .transitionEase(d3.easeCubic)
             .sort(true)
             .title(title)
-            .onClick(onGraphClick)
             .setDetailsElement(eGraphDetail);
 
         d3.select('#graph')
             .datum(graphData)
             // FIXME: Typing
             .call(flameGraph as any);
-
-        /*
-        document.getElementById("form").addEventListener("submit", function (event) {
-            event.preventDefault();
-            search();
-        });
-
-        function search() {
-            var term = document.getElementById("term").value;
-            flameGraph.search(term);
-        }
-
-        function clear() {
-            document.getElementById('term').value = '';
-            flameGraph.clear();
-        }
-
-        function resetZoom() {
-            flameGraph.resetZoom();
-        }
-        */
-    }
-
-    function onGraphClick() {
-        console.log(arguments);
     }
 
     const loadProgressMonitor = new ProgressMonitor(Definitions.PHASE_COUNT, eUploadProgress);
