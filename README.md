@@ -10,6 +10,13 @@ Supported formats
 * IBM WebSphere Java core dump
 * IBM WebSphere SystemOut capturing hung threads
 * OpenJDK thread dump
+* .NET process threads using WinDBG SOS (with the `!EEStack` command)
+* .NET process threads using `dotnet-dump analyze` (with the `clrstack -all -n` command)
+
+Build & run
+-----------
+
+Run `npx gulp`
 
 Credits
 -------
